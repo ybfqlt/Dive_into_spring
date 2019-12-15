@@ -19,8 +19,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class BeanFactoryimpl implements BeanFactory {
 
+    /**
+     * BeanMap用于保存beanName实例化之后的对象。
+     */
     private static final ConcurrentHashMap<String,Object> beanMap = new ConcurrentHashMap<>();
 
+    /**
+     * 存储对象名称和对象对应的数据结构的映射。
+     */
     private static final ConcurrentHashMap<String, BeanDefinition> beanDefineMap = new ConcurrentHashMap<>();
 
     private static final Set<String> beanNameSet = Collections.synchronizedSet(new HashSet<String>());
@@ -28,15 +34,30 @@ public class BeanFactoryimpl implements BeanFactory {
 
     @Override
     public Object getBean(String name) throws Exception {
+        /**
+         * 查找对象是否已经实例过
+         */
         Object bean = beanMap.get(name);
         if(bean != null){
             return bean;
         }
+        /**
+         * 如果没有实例化，那就需要调用createBean来创建对象
+         */
         bean = createBean(beanDefineMap.get(name));
         if(bean != null){
+            /**
+             * 注入对象需要的参数
+             */
             populatebean(bean);
+            /**
+             * 把对象存入map中方便下次使用
+             */
             beanMap.put(name,bean);
         }
+        /**
+         * 结束返回
+         */
         return bean;
     }
 
@@ -69,6 +90,9 @@ public class BeanFactoryimpl implements BeanFactory {
         if(fields != null && fields.length > 0){
             for(Field field:fields){
                 String beanName = field.getName();
+                /**
+                 * 字符串首字母转小写
+                 */
                 beanName = StringUtils.uncapitalize(beanName);
                 if(beanNameSet.contains(field.getName())) {
                     Object fieldBean = getBean(beanName);
